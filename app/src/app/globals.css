@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 26, 26, 26;
+  --primary-glow: #6F4FF0;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+/* Title styling */
+.title {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-size: 3.5rem;
+  text-shadow: 0 0 20px var(--primary-glow);
+  margin-bottom: 1rem;
+}
+
+/* Game section */
+.game-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Info panels */
+.info-panel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 200px;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.info-panel.left {
+  left: -240px;
+  text-align: right;
+}
+
+.info-panel.right {
+  right: -240px;
+  text-align: left;
+}
+
+.info-title {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  color: var(--primary-glow);
+  margin-bottom: 0.5rem;
+}
+
+.info-content {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* Game container */
+.tetris-container {
+  position: relative;
+  padding: 2rem;
+}
+
+.tetris-game {
+  border: 2px solid rgba(111, 79, 240, 0.3);
+  padding: 1.5rem;
+  background: rgba(26, 26, 26, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 0 40px rgba(111, 79, 240, 0.2);
+  position: relative;
+}
+
+/* Source code display */
+.source-code {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 800px;
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(111, 79, 240, 0.2);
+}
+
+/* Leaderboard */
+.leaderboard {
+  width: 100%;
+  max-width: 800px;
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(111, 79, 240, 0.2);
+  padding: 1rem;
+}
+
+/* Game container with enhanced glow */
+.tetris-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 600px;
+  width: 100%;
+  position: relative;
+}
+
+.tetris-container::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, 
+    var(--primary-glow), 
+    rgba(111, 79, 240, 0.3), 
+    var(--primary-glow)
+  );
+  border-radius: 10px;
+  z-index: -1;
+  animation: borderGlow 3s infinite;
+  filter: blur(8px);
+}
+
+.tetris-game {
+  display: flex;
+  gap: 1rem;
+  border: 2px solid rgba(111, 79, 240, 0.3);
+  padding: 1rem;
+  background: #1a1a1a;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(111, 79, 240, 0.2);
+  width: fit-content;
+  margin: 0 auto;
+  position: relative;
+  animation: containerPulse 4s infinite;
+}
+
+/* Animations */
+@keyframes titlePulse {
+  0%, 100% {
+    text-shadow: 0 0 10px var(--primary-glow);
+  }
+  50% {
+    text-shadow: 0 0 20px var(--primary-glow), 0 0 30px var(--primary-glow);
+  }
+}
+
+@keyframes glitchText {
+  0%, 100% { clip-path: inset(0 0 0 0); }
+  5%, 95% { clip-path: inset(0 -2px 0 0); }
+  10% { clip-path: inset(10px 0 20px 0); }
+  15% { clip-path: inset(20px 0 10px 0); }
+  20% { clip-path: inset(30px 0 40px 0); }
+  25% { clip-path: inset(40px 0 30px 0); }
+  30% { clip-path: inset(50px 0 60px 0); }
+  35% { clip-path: inset(60px 0 50px 0); }
+}
+
+@keyframes borderGlow {
+  0%, 100% {
+    opacity: 1;
+    filter: blur(8px);
+  }
+  50% {
+    opacity: 0.5;
+    filter: blur(12px);
+  }
+}
+
+@keyframes containerPulse {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(111, 79, 240, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(111, 79, 240, 0.3);
+  }
+}
+
+.game-board {
+  min-width: 280px;
+  min-height: 560px;
+  border: 1px solid rgba(111, 79, 240, 0.2);
+  border-radius: 4px;
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+/* Base piece styling */
+.tetris-game [class*="piece"]:not(.piece-preview) {
+  background-color: #6F4FF0 !important;
+  position: relative;
+  transform-style: preserve-3d;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,0.2), 
+              inset 2px 2px 0 rgba(255,255,255,0.1),
+              0 0 10px rgba(111, 79, 240, 0.3);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  animation: pieceFadeIn 0.3s ease-out;
+}
+
+/* Hover effect on pieces */
+.tetris-game [class*="piece"]:not(.piece-preview):hover {
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,0.2), 
+              inset 2px 2px 0 rgba(255,255,255,0.1),
+              0 0 15px rgba(111, 79, 240, 0.5);
+  transform: scale(1.02);
+}
+
+/* Solana logo in pieces */
+.tetris-game [class*="piece"]:not(.piece-preview)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  background-image: url('/solana.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: brightness(0) invert(1);
+  transform-origin: center;
+  transform: translate(-50%, -50%) rotate(var(--piece-rotation, 0deg));
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+/* Different colors for different pieces with glow */
+.tetris-game .piece-I { 
+  background-color: #6F4FF0 !important;
+  box-shadow: 0 0 15px rgba(111, 79, 240, 0.3);
+}
+.tetris-game .piece-J { 
+  background-color: #9B7EF7 !important;
+  box-shadow: 0 0 15px rgba(155, 126, 247, 0.3);
+}
+.tetris-game .piece-L { 
+  background-color: #8465F3 !important;
+  box-shadow: 0 0 15px rgba(132, 101, 243, 0.3);
+}
+.tetris-game .piece-O { 
+  background-color: #7356F1 !important;
+  box-shadow: 0 0 15px rgba(115, 86, 241, 0.3);
+}
+.tetris-game .piece-S { 
+  background-color: #6247EE !important;
+  box-shadow: 0 0 15px rgba(98, 71, 238, 0.3);
+}
+.tetris-game .piece-T { 
+  background-color: #5138EB !important;
+  box-shadow: 0 0 15px rgba(81, 56, 235, 0.3);
+}
+.tetris-game .piece-Z { 
+  background-color: #4029E8 !important;
+  box-shadow: 0 0 15px rgba(64, 41, 232, 0.3);
+}
+
+/* Animation for new pieces */
+@keyframes pieceFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Stats and Controls styling */
+.stats-panel, .controls-panel {
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid rgba(111, 79, 240, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.stats-panel:hover, .controls-panel:hover {
+  border-color: rgba(111, 79, 240, 0.4);
+  box-shadow: 0 0 20px rgba(111, 79, 240, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tetris-game {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .game-board {
+    min-width: 240px;
+    min-height: 480px;
+  }
+}
