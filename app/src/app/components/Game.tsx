@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useState, useEffect, useCallback } from 'react';
+import { GameOverModal } from './GameOverModal';
 
 const Tetris = dynamic(() => import('react-tetris'), {
   ssr: false,
@@ -14,11 +15,13 @@ const Tetris = dynamic(() => import('react-tetris'), {
 });
 
 export function Game() {
-  const { connected } = useWallet();
-  const [hasDeposited, setHasDeposited] = useState(false);
+  const { connected, publicKey } = useWallet();
   const [mounted, setMounted] = useState(false);
-  const isPlayable = connected && hasDeposited;
+  const [hasDeposited, setHasDeposited] = useState(true);
+  const isPlayable = true;
   const [timeUntilPayout, setTimeUntilPayout] = useState('');
+  const [showGameOver, setShowGameOver] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
 
   // Handle hydration
   useEffect(() => {
@@ -63,6 +66,24 @@ export function Game() {
     return {};
   }, [isPlayable]);
 
+  // Add this useEffect near the top of the Game component
+  useEffect(() => {
+    const preventArrowScroll = (e: KeyboardEvent) => {
+      if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', preventArrowScroll);
+    return () => window.removeEventListener('keydown', preventArrowScroll);
+  }, []);
+
+  // Update the game over handler to receive the final score
+  const handleGameOver = useCallback(({ points }: { points: number }) => {
+    setFinalScore(points);
+    setShowGameOver(true);
+  }, []);
+
   if (!mounted) {
     return (
       <div className="w-full h-[600px] bg-[#2D2D2D] flex items-center justify-center">
@@ -75,64 +96,91 @@ export function Game() {
     <div className="flex flex-col items-center">
       <div className="relative">
         <div className={`game-container ${!isPlayable ? 'game-container-disabled' : ''}`}>
-          <Tetris onTick={handleGameTick}>
-            {({ Gameboard }) => (
-              <div className="flex gap-8">
-                {/* Left info panel */}
-                <div className="info-panel left">
-                  <div className="mb-8">
-                    <h3 className="info-title">HOW TO PLAY</h3>
-                    <p className="info-content">
-                      Load credits to play
-                      <br />
-                      Complete for the top score paid out hourly
-                      <br />
-                      Collect XP
-                      <br />
-                      Top score wins the pot
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="info-title">CONTROLS</h3>
-                    <p className="info-content">
-                      ← → : Move
-                      <br />
-                      ↑ : Rotate
-                      <br />
-                      ↓ : Soft Drop
-                      <br />
-                      Space : Hard Drop
-                    </p>
-                  </div>
-                </div>
+          <Tetris 
+            onTick={handleGameTick}
+          >
+            {({ 
+              Gameboard, 
+              points, 
+              linesCleared,
+              state  // Add this to track game state
+            }) => {
+              // Check for game over state
+              useEffect(() => {
+                if (state === 'LOST') {
+                  setShowGameOver(true);
+                  setFinalScore(points);
+                }
+              }, [state, points]);
 
-                {/* Game Board */}
-                <div className="flex-1">
-                  <div className="tetris-container">
-                    <div className="tetris-game">
-                      <div className="game-board">
-                        <Gameboard />
+              return (
+                <div className="flex gap-8">
+                  {/* Left info panel */}
+                  <div className="info-panel left">
+                    <div className="mb-8">
+                      <h3 className="info-title">HOW TO PLAY</h3>
+                      <p className="info-content">
+                        Load credits to play
+                        <br />
+                        Top score wins the pot paid out hourly
+                        <br />
+                        Collect XP
+                        <br />
+                        Top score wins the pot
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="info-title">CONTROLS</h3>
+                      <p className="info-content">
+                        ← → : Move
+                        <br />
+                        ↑ : Rotate
+                        <br />
+                        ↓ : Soft Drop
+                        <br />
+                        Space : Hard Drop
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Game Board */}
+                  <div className="flex-1">
+                    <div className="tetris-container">
+                      <div className="tetris-game">
+                        <div className="game-board">
+                          <Gameboard />
+                        </div>
+                        <div className="score-display">
+                          <div>
+                            <span>Score: </span>
+                            <span>{points}</span>
+                          </div>
+                          <div>
+                            <span>Lines: </span>
+                            <span>{linesCleared}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Right info panel */}
-                <div className="info-panel right">
-                  <div className="current-pot">
-                    <h3 className="info-title">CURRENT POT</h3>
-                    <div className="pot-display">
-                      <span className="pot-amount">0 SOL</span>
-                      <span className="pot-emoji">💰</span>
+                  {/* Right info panel */}
+                  <div className="info-panel right">
+                    <div className="current-pot">
+                      <h3 className="info-title">CURRENT POT</h3>
+                      <div className="pot-display">
+                        <span className="pot-amount">0 SOL</span>
+                        <span className="pot-emoji">💰</span>
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <h3 className="info-title">NEXT PAYOUT</h3>
+                      <div className="countdown-display">{timeUntilPayout}</div>
                     </div>
                   </div>
-                  <div className="mt-6">
-                    <h3 className="info-title">NEXT PAYOUT</h3>
-                    <div className="countdown-display">{timeUntilPayout}</div>
-                  </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
           </Tetris>
         </div>
 
@@ -175,6 +223,17 @@ export function Game() {
           {/* Table content will go here */}
         </div>
       </div>
+
+      {showGameOver && (
+        <GameOverModal
+          score={finalScore}
+          walletAddress={connected ? publicKey?.toBase58() || '' : ''}
+          onClose={() => {
+            setShowGameOver(false);
+            window.location.reload(); // Refresh to start a new game
+          }}
+        />
+      )}
     </div>
   );
 } 

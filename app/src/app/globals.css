@@ -13,17 +13,35 @@
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
+  overflow: hidden;
+  user-select: none;
 }
 
-/* Title styling */
+/* Enhanced Title styling */
 .title {
   position: relative;
-  font-size: 4rem;
-  background: linear-gradient(to right, #6F4FF0, #9B7EF7);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: transparent;
+  background: linear-gradient(
+    135deg,
+    #6F4FF0 0%,
+    #9B7EF7 45%,
+    #fff 50%,
+    #9B7EF7 55%,
+    #6F4FF0 100%
+  );
+  background-size: 400% 400%;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba(111, 79, 240, 0.5));
-  animation: titleGlow 3s infinite;
+  background-clip: text;
+  text-shadow: 
+    0 0 20px rgba(111, 79, 240, 0.5),
+    0 0 40px rgba(111, 79, 240, 0.3),
+    0 0 60px rgba(111, 79, 240, 0.2);
+  animation: titleShine 8s linear infinite, titleFloat 4s ease-in-out infinite;
 }
 
 .title-effect {
@@ -31,20 +49,87 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(111, 79, 240, 0.2) 0%, transparent 70%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    circle,
+    rgba(111, 79, 240, 0.2) 0%,
+    rgba(111, 79, 240, 0.1) 25%,
+    transparent 70%
+  );
   filter: blur(20px);
   z-index: -1;
+  animation: glowPulse 4s ease-in-out infinite;
 }
 
-@keyframes titleGlow {
+.title::before {
+  content: 'SOLANA ARCADE';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(111, 79, 240, 0.8) 50%,
+    transparent 55%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: glitchEffect 5s linear infinite;
+  filter: blur(1px);
+  opacity: 0.7;
+}
+
+.title::after {
+  content: 'SOLANA ARCADE';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    -45deg,
+    transparent 45%,
+    rgba(155, 126, 247, 0.8) 50%,
+    transparent 55%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: glitchEffect 5s linear infinite reverse;
+  filter: blur(1px);
+  opacity: 0.7;
+}
+
+@keyframes titleShine {
+  0% { background-position: 100% 50%; }
+  100% { background-position: -100% 50%; }
+}
+
+@keyframes titleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes glowPulse {
   0%, 100% {
-    filter: drop-shadow(0 0 15px rgba(111, 79, 240, 0.5));
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
   }
   50% {
-    filter: drop-shadow(0 0 25px rgba(111, 79, 240, 0.8));
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
   }
+}
+
+@keyframes glitchEffect {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Game section */
@@ -104,6 +189,10 @@ body {
   border-radius: 12px;
   box-shadow: 0 0 40px rgba(111, 79, 240, 0.2);
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .game-board {
@@ -114,6 +203,10 @@ body {
   background: rgba(26, 26, 26, 0.8);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* Base piece styling */
@@ -358,4 +451,141 @@ body {
   color: #6F4FF0;
   font-size: 0.875rem;
   font-weight: 600;
+}
+
+/* Score display */
+.score-display {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(111, 79, 240, 0.1);
+  border: 1px solid rgba(111, 79, 240, 0.2);
+  border-radius: 8px;
+  font-family: 'Orbitron', sans-serif;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  color: white;
+}
+
+.score-display span:last-child {
+  color: #6F4FF0;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+/* Game Over Modal */
+.game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.game-over-modal {
+  background: rgba(26, 26, 26, 0.95);
+  border: 2px solid rgba(111, 79, 240, 0.4);
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.game-over-modal.show {
+  transform: scale(100%);
+  opacity: 1;
+}
+
+.game-over-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 4rem;
+  font-weight: 800;
+  color: #6F4FF0;
+  text-shadow: 0 0 20px rgba(111, 79, 240, 0.5);
+  margin-bottom: 2rem;
+  animation: glowPulse 2s infinite;
+}
+
+.game-over-content {
+  margin-bottom: 2rem;
+}
+
+.game-over-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.score-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.25rem;
+  color: white;
+  opacity: 0.8;
+}
+
+.score-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #6F4FF0;
+  text-shadow: 0 0 15px rgba(111, 79, 240, 0.4);
+}
+
+.wallet-address {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: white;
+  opacity: 0.6;
+  margin-bottom: 1.5rem;
+}
+
+.game-over-message {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: white;
+  line-height: 1.5;
+}
+
+.play-again-button {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 1rem 2.5rem;
+  background: rgba(111, 79, 240, 0.8);
+  border: 2px solid rgba(111, 79, 240, 0.4);
+  border-radius: 8px;
+  color: white;
+  transition: all 0.2s ease;
+  margin-top: 2rem;
+}
+
+.play-again-button:hover {
+  background: rgba(111, 79, 240, 0.9);
+  border-color: rgba(111, 79, 240, 0.6);
+  box-shadow: 0 0 20px rgba(111, 79, 240, 0.3);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    text-shadow: 0 0 20px rgba(111, 79, 240, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(111, 79, 240, 0.8);
+  }
 }
