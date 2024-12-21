@@ -16,11 +16,22 @@ dist/
 target/
 **/*.rs.bk
 test-ledger/
+.crates/
+.cargo/
+
+# Anchor specific
+.anchor/
+target/
+deployment.json
+.DS_Store
+**/*.keypair.json
+**/solana-program-library/
 
 # Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # Local env files
 .env
@@ -28,23 +39,32 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+.editorconfig
 
 # OS
 .DS_Store
 *.pem
+Thumbs.db
 
 # Vercel
 .vercel
 
 # TypeScript
 *.tsbuildinfo
+next-env.d.ts
 
 # Anchor
 .anchor/
 target/
+migrations/
+tests/dump.sql
+
+# Program keypairs
+*-keypair.json
