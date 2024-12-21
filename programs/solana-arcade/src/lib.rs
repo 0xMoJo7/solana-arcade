@@ -1,5 +1,3 @@
-# Create lib.rs
-cat > programs/solana-arcade/src/lib.rs << EOL
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::hash::hash;
 
@@ -47,9 +45,11 @@ pub mod solana_arcade {
         player_account.balance = player_account.balance.checked_sub(amount)
             .ok_or(ErrorCode::NumberOverflow)?;
 
-        // Transfer SOL back to player
-        **ctx.accounts.player_account.try_borrow_mut_lamports()? -= amount;
-        **ctx.accounts.player.try_borrow_mut_lamports()? += amount;
+        // Transfer SOL back to player using to_account_info()
+        let from = player_account.to_account_info();
+        let to = ctx.accounts.player.to_account_info();
+        **from.try_borrow_mut_lamports()? -= amount;
+        **to.try_borrow_mut_lamports()? += amount;
 
         Ok(())
     }
@@ -71,10 +71,10 @@ pub mod solana_arcade {
 
         // Generate game seed for verification
         let game_seed = hash(&[
-            &ctx.accounts.player.key().to_bytes(),
+            ctx.accounts.player.key().as_ref(),
             &Clock::get()?.unix_timestamp.to_le_bytes(),
             &game_state.total_games_played.to_le_bytes(),
-        ]).to_bytes();
+        ].concat()).to_bytes();
 
         game_state.total_games_played = game_state.total_games_played.checked_add(1)
             .ok_or(ErrorCode::NumberOverflow)?;
@@ -146,9 +146,11 @@ pub mod solana_arcade {
         if let Some(winner) = leaderboard.get_round_winner(game_state.current_round) {
             let pot_amount = game_state.current_pot;
             
-            // Transfer pot to winner
-            **ctx.accounts.game_vault.try_borrow_mut_lamports()? -= pot_amount;
-            **ctx.accounts.winner.try_borrow_mut_lamports()? += pot_amount;
+            // Transfer pot to winner using to_account_info()
+            let from = ctx.accounts.game_vault.to_account_info();
+            let to = ctx.accounts.winner.to_account_info();
+            **from.try_borrow_mut_lamports()? -= pot_amount;
+            **to.try_borrow_mut_lamports()? += pot_amount;
 
             emit!(PayoutProcessed {
                 winner: winner.wallet,
@@ -245,6 +247,7 @@ pub struct ProcessPayout<'info> {
     pub game_state: Account<'info, GameState>,
     #[account(mut)]
     pub game_vault: Account<'info, GameVault>,
+    /// CHECK: Winner's address is verified through the leaderboard before any funds are transferred
     #[account(mut)]
     pub winner: AccountInfo<'info>,
     #[account(mut)]
@@ -255,7 +258,7 @@ pub struct ProcessPayout<'info> {
 
 #[account]
 pub struct GameState {
-    pub authority: Pubkey,            // 32
+    pub authority: Pubkey,           // 32
     pub current_pot: u64,            // 8
     pub next_payout: i64,            // 8
     pub total_games_played: u64,     // 8
@@ -274,8 +277,8 @@ pub struct PlayerStats {
     pub wallet: Pubkey,       // 32
     pub high_score: u64,      // 8
     pub total_games: u64,     // 8
-    pub xp: u64,             // 8
-    pub bump: u8,            // 1
+    pub xp: u64,              // 8
+    pub bump: u8,             // 1
 }
 
 #[account]
@@ -306,7 +309,21 @@ impl PlayerStats {
 
 impl Leaderboard {
     pub fn add_entry(&mut self, entry: LeaderboardEntry) -> Result<()> {
-        // Implementation for adding and sorting entries
+        if self.entries.len() >= self.max_entries as usize {
+            // Remove lowest score if at capacity
+            if let Some(min_idx) = self.entries.iter()
+                .enumerate()
+                .min_by_key(|(_, e)| e.score)
+                .map(|(i, _)| i) {
+                if entry.score > self.entries[min_idx].score {
+                    self.entries.remove(min_idx);
+                } else {
+                    return Ok(());
+                }
+            }
+        }
+        self.entries.push(entry);
+        self.entries.sort_by(|a, b| b.score.cmp(&a.score));
         Ok(())
     }
 
@@ -359,4 +376,15 @@ fn verify_moves_hash(_moves_hash: [u8; 32], _score: u64) -> bool {
     // Implement verification logic
     true
 }
-EOL
+
+#[account]
+pub struct GameVault {
+    pub authority: Pubkey,
+    pub amount: u64,
+}
+
+impl GameVault {
+    pub const SPACE: usize = 8 + // discriminator
+        32 + // authority
+        8;  // amount
+}

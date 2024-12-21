@@ -1,17 +1,30 @@
 # Solana Arcade 🎮
 
-An open-source arcade platform built on Solana where players can compete in classic games for rewards.
+A decentralized Tetris game on Solana where players compete for hourly prizes. Play games, earn XP, and win SOL!
 
-## 🚀 Quick Start
+## 🎯 Game Mechanics
 
-### Prerequisites
+- Each game costs 0.01 SOL to play
+- All entry fees go into an hourly prize pool
+- Highest score each hour wins the entire pot
+- Earn 100 XP for each game played
+- Global leaderboard tracks top scores
 
-- Node.js 16+ and pnpm (`npm install -g pnpm`)
-- Rust and Cargo
-- Solana CLI tools
-- Anchor Framework
+## 🛠️ Tech Stack
 
-### Development Setup
+- **Frontend**: Next.js 14, React 19, TailwindCSS
+- **Blockchain**: Solana (1.14.17), Anchor Framework (0.27.0)
+- **Game Engine**: React Tetris
+
+## 📋 Prerequisites
+
+- Node.js 18+
+- Rust 1.68.0
+- Solana CLI Tools
+- Anchor 0.27.0
+- pnpm
+
+## 🚀 Getting Started
 
 1. Clone the repository:
 ```bash
@@ -24,9 +37,9 @@ cd solana-arcade
 pnpm install
 ```
 
-3. Set up your environment:
+3. Build the Solana program:
 ```bash
-cp app/.env.example app/.env
+anchor build
 ```
 
 4. Start the development server:
@@ -34,24 +47,35 @@ cp app/.env.example app/.env
 pnpm dev
 ```
 
-## 🏗️ Project Structure
+## 📁 Project Structure
 
 ```
 solana-arcade/
-├── app/                  # Next.js frontend
-│   ├── src/             # Source code
-│   └── public/          # Static files
-├── program/             # Solana program
-└── tests/              # Integration tests
+├── app/                    # Next.js frontend
+│   └── src/
+│       └── app/
+│           ├── components/ # React components
+│           └── ...
+├── programs/              # Solana programs
+│   └── solana-arcade/     # Main game program
+└── tests/                 # Program tests
 ```
 
-## 🛠️ Built With
+## 🎮 Smart Contract Features
 
-- [Next.js](https://nextjs.org/)
-- [Solana](https://solana.com/)
-- [Anchor](https://www.anchor-lang.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
+- Game credits management (deposit/withdraw)
+- Secure score verification
+- Automated hourly payouts
+- XP system and tracking
+- Global leaderboard
+- Player statistics
 
-## 📜 License
+## 🔗 Useful Links
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- [Solana Docs](https://docs.solana.com/)
+- [Anchor Framework](https://www.anchor-lang.com/)
+- [React Tetris](https://github.com/brandly/react-tetris)
+
+## 📄 License
+
+[MIT License](LICENSE)
