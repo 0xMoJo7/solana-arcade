@@ -1,0 +1,10 @@
+{
+  "name": "solana-arcade",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter app dev",
+    "build": "pnpm --filter app build",
+    "start": "pnpm --filter app start",
+    "lint": "pnpm --filter app lint"
+  }
+} 
