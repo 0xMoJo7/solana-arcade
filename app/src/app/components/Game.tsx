@@ -88,7 +88,7 @@ export function Game() {
     return () => window.removeEventListener('keydown', preventArrowScroll);
   }, []);
 
-  // Update the game over handler to receive the final score
+  // Update the game over handler
   const handleGameOver = useCallback(({ points }: { points: number }) => {
     setFinalScore(points);
     setShowGameOver(true);
@@ -145,8 +145,8 @@ export function Game() {
             }) => {
               useEffect(() => {
                 if (state === 'LOST') {
-                  setShowGameOver(true);
                   setFinalScore(points);
+                  setShowGameOver(true);
                 }
               }, [state, points]);
 
