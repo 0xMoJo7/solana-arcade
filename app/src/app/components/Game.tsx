@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useState, useEffect, useCallback } from 'react';
 import { GameOverModal } from './GameOverModal';
+import { WalletConnect } from './WalletConnect';
 
 const Tetris = dynamic(() => import('react-tetris'), {
   ssr: false,
@@ -13,6 +14,15 @@ const Tetris = dynamic(() => import('react-tetris'), {
     </div>
   ),
 });
+
+interface GameTickState {
+  piece: {
+    position: {
+      x: number;
+      y: number;
+    };
+  };
+}
 
 export function Game() {
   const { connected, publicKey } = useWallet();
@@ -46,7 +56,7 @@ export function Game() {
   }, []);
 
   // Auto-play handler for demo mode
-  const handleGameTick = useCallback((gameState: any) => {
+  const handleGameTick = useCallback((gameState: GameTickState) => {
     if (!isPlayable && gameState.piece) {
       const x = gameState.piece.position.x;
       const moves = [];
@@ -93,19 +103,46 @@ export function Game() {
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative">
-        <div className={`game-container ${!isPlayable ? 'game-container-disabled' : ''}`}>
-          <Tetris 
-            onTick={handleGameTick}
-          >
+    <div className="game-section">
+
+      {/* Main game container */}
+      <div className="game-container">
+        {/* Left info panel */}
+        <div className="info-panel left">
+          <div className="mb-8">
+            <h3 className="info-title">HOW TO PLAY</h3>
+            <p className="info-content">
+              Load credits to play<br />
+              Top score wins the pot hourly<br />
+              Collect XP<br />
+              Top score wins the pot
+            </p>
+          </div>
+          <div>
+            <h3 className="info-title">CONTROLS</h3>
+            <p className="info-content">
+              ← → : Move<br />
+              ↑ : Rotate<br />
+              ↓ : Soft Drop<br />
+              Space : Hard Drop
+            </p>
+          </div>
+        </div>
+
+        {/* Tetris game */}
+        <div className="tetris-container">
+          <Tetris onTick={handleGameTick}>
             {({ 
               Gameboard, 
               points, 
               linesCleared,
-              state  // Add this to track game state
+              state
+            }: {
+              Gameboard: React.ComponentType;
+              points: number;
+              linesCleared: number;
+              state: 'PLAYING' | 'PAUSED' | 'LOST';
             }) => {
-              // Check for game over state
               useEffect(() => {
                 if (state === 'LOST') {
                   setShowGameOver(true);
@@ -114,68 +151,18 @@ export function Game() {
               }, [state, points]);
 
               return (
-                <div className="flex gap-8">
-                  {/* Left info panel */}
-                  <div className="info-panel left">
-                    <div className="mb-8">
-                      <h3 className="info-title">HOW TO PLAY</h3>
-                      <p className="info-content">
-                        Load credits to play
-                        <br />
-                        Top score wins the pot paid out hourly
-                        <br />
-                        Collect XP
-                        <br />
-                        Top score wins the pot
-                      </p>
+                <div className="tetris-game">
+                  <div className="game-board">
+                    <Gameboard />
+                  </div>
+                  <div className="score-display">
+                    <div>
+                      <span>Score: </span>
+                      <span>{points}</span>
                     </div>
                     <div>
-                      <h3 className="info-title">CONTROLS</h3>
-                      <p className="info-content">
-                        ← → : Move
-                        <br />
-                        ↑ : Rotate
-                        <br />
-                        ↓ : Soft Drop
-                        <br />
-                        Space : Hard Drop
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Game Board */}
-                  <div className="flex-1">
-                    <div className="tetris-container">
-                      <div className="tetris-game">
-                        <div className="game-board">
-                          <Gameboard />
-                        </div>
-                        <div className="score-display">
-                          <div>
-                            <span>Score: </span>
-                            <span>{points}</span>
-                          </div>
-                          <div>
-                            <span>Lines: </span>
-                            <span>{linesCleared}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right info panel */}
-                  <div className="info-panel right">
-                    <div className="current-pot">
-                      <h3 className="info-title">CURRENT POT</h3>
-                      <div className="pot-display">
-                        <span className="pot-amount">0 SOL</span>
-                        <span className="pot-emoji">💰</span>
-                      </div>
-                    </div>
-                    <div className="mt-6">
-                      <h3 className="info-title">NEXT PAYOUT</h3>
-                      <div className="countdown-display">{timeUntilPayout}</div>
+                      <span>Lines: </span>
+                      <span>{linesCleared}</span>
                     </div>
                   </div>
                 </div>
@@ -184,21 +171,24 @@ export function Game() {
           </Tetris>
         </div>
 
-        {/* Overlay for non-playable state */}
-        {!isPlayable && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-20 z-10">
-            <h3 className="text-xl mb-6 font-orbitron text-white">
-              Add Credits to Play
-            </h3>
-            <button className="start-game-button">
-              START GAME
-            </button>
+        {/* Right info panel */}
+        <div className="info-panel right">
+          <div className="current-pot">
+            <h3 className="info-title">CURRENT POT</h3>
+            <div className="pot-display">
+              <span className="pot-amount">0 SOL</span>
+              <span className="pot-emoji">💰</span>
+            </div>
           </div>
-        )}
+          <div className="mt-6">
+            <h3 className="info-title">NEXT PAYOUT</h3>
+            <div className="countdown-display">{timeUntilPayout}</div>
+          </div>
+        </div>
       </div>
 
       {/* Game Credits Section */}
-      <div className="game-credits mt-8">
+      <div className="game-credits">
         <h2 className="credits-title">Game Credits</h2>
         <div className="credits-content">
           <div className="credits-info">
@@ -211,8 +201,8 @@ export function Game() {
         </div>
       </div>
 
-      {/* Leaderboard Section */}
-      <div className="leaderboard-section mt-8">
+      {/* Centered leaderboard */}
+      <div className="leaderboard-section">
         <h2 className="leaderboard-title">Current Leaderboard</h2>
         <div className="leaderboard-table">
           <div className="leaderboard-header">
@@ -220,7 +210,6 @@ export function Game() {
             <div className="leaderboard-cell">Score</div>
             <div className="leaderboard-cell">Attempts</div>
           </div>
-          {/* Table content will go here */}
         </div>
       </div>
 
@@ -230,7 +219,7 @@ export function Game() {
           walletAddress={connected ? publicKey?.toBase58() || '' : ''}
           onClose={() => {
             setShowGameOver(false);
-            window.location.reload(); // Refresh to start a new game
+            window.location.reload();
           }}
         />
       )}

@@ -1,6 +1,4 @@
-import { NextConfig } from 'next';
-
-const config: NextConfig = {
+const nextConfig = {
   reactStrictMode: true,
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
@@ -8,4 +6,4 @@ const config: NextConfig = {
   }
 };
 
-export default config;
+export default nextConfig;
