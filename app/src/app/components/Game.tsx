@@ -211,20 +211,19 @@ export function Game() {
 
       {/* Game Credits Section */}
       <div className="game-credits">
-        <h2 className="credits-title">Game Credits</h2>
-        <div className="credits-content">
-          <div className="credits-info">
-            <p>Current Balance: {credits} credits</p>
-            <p className="credits-rate">1 credit = 0.1 SOL</p>
+        <div>
+          <h2 className="text-xl font-bold">Game Credits</h2>
+          <div className="mt-1">
+            <p className="text-white/90">Current Balance: {credits} credits</p>
+            <p className="text-sm text-white/60">1 credit = 0.1 SOL</p>
           </div>
-          <button 
-            className="add-credits-button"
-            onClick={() => setShowDepositModal(true)}
-            disabled={creditsLoading || transactionPending}
-          >
-            {creditsLoading || transactionPending ? 'Processing...' : 'Add Credits'}
-          </button>
         </div>
+
+        <DepositModal
+          onDeposit={handleAddCredits}
+          onClose={() => {}}  // Empty function since we don't need to close anymore
+          isLoading={creditsLoading || transactionPending}
+        />
       </div>
 
       {/* Centered leaderboard */}
@@ -238,15 +237,6 @@ export function Game() {
           </div>
         </div>
       </div>
-
-      {/* Modal */}
-      {showDepositModal && (
-        <DepositModal
-          onDeposit={handleAddCredits}
-          onClose={() => setShowDepositModal(false)}
-          isLoading={creditsLoading || transactionPending}
-        />
-      )}
 
       {showGameOver && (
         <GameOverModal

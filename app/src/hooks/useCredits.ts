@@ -12,33 +12,40 @@ export function useCredits() {
   const [loading, setLoading] = useState(false);
   const [transactionPending, setTransactionPending] = useState(false);
 
-  // Get player's credit balance
+  const fetchPlayerAccount = useCallback(async () => {
+    if (!wallet) return null;
+
+    const [playerAccountPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("player_account"), wallet.publicKey.toBuffer()],
+      PROGRAM_ID
+    );
+
+    return playerAccountPda;
+  }, [wallet]);
+
   const fetchCredits = useCallback(async () => {
     if (!wallet) return;
 
     try {
       const provider = new AnchorProvider(connection, wallet, {});
       const program = getProgram(provider);
+      const playerAccountPda = await fetchPlayerAccount();
 
-      const [playerAccountPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("player_account"), wallet.publicKey.toBuffer()],
-        PROGRAM_ID
-      );
+      if (!playerAccountPda) return;
 
       try {
         const account = await program.account.playerAccount.fetch(playerAccountPda);
-        setCredits(account.balance.toNumber() / LAMPORTS_PER_SOL / 10);
+        setCredits(account.balance.toNumber() / LAMPORTS_PER_SOL / 10); // 0.1 SOL = 1 credit
       } catch (e) {
+        console.log("No player account found yet");
         setCredits(0);
       }
     } catch (error) {
       console.error("Error fetching credits:", error);
-      setCredits(0);
       toast.error("Failed to fetch credits balance");
     }
-  }, [wallet, connection]);
+  }, [wallet, connection, fetchPlayerAccount]);
 
-  // Deposit funds for credits
   const depositCredits = useCallback(async (amount: number) => {
     if (!wallet) {
       toast.error("Please connect your wallet first");
@@ -51,13 +58,14 @@ export function useCredits() {
     try {
       const provider = new AnchorProvider(connection, wallet, {});
       const program = getProgram(provider);
+      const playerAccountPda = await fetchPlayerAccount();
 
-      const [playerAccountPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("player_account"), wallet.publicKey.toBuffer()],
-        PROGRAM_ID
-      );
+      if (!playerAccountPda) {
+        toast.error("Failed to create player account", { id: toastId });
+        return;
+      }
 
-      const lamports = amount * LAMPORTS_PER_SOL / 10;
+      const lamports = amount * LAMPORTS_PER_SOL / 10; // 0.1 SOL per credit
 
       setTransactionPending(true);
       toast.loading("Please approve the transaction...", { id: toastId });
@@ -73,10 +81,7 @@ export function useCredits() {
 
       toast.loading("Confirming transaction...", { id: toastId });
       
-      // Wait for confirmation
       await connection.confirmTransaction(signature);
-      
-      // Update credits balance
       await fetchCredits();
 
       toast.success(`Successfully added ${amount} credit${amount !== 1 ? 's' : ''}!`, { id: toastId });
@@ -87,9 +92,9 @@ export function useCredits() {
       setLoading(false);
       setTransactionPending(false);
     }
-  }, [wallet, connection, fetchCredits]);
+  }, [wallet, connection, fetchPlayerAccount, fetchCredits]);
 
-  // Fetch credits on wallet change
+  // Fetch credits whenever wallet changes
   useEffect(() => {
     fetchCredits();
   }, [fetchCredits, wallet?.publicKey]);
