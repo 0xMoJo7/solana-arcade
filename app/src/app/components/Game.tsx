@@ -7,6 +7,7 @@ import { GameOverModal } from './GameOverModal';
 import { WalletConnect } from './WalletConnect';
 import { useCredits } from '../../hooks/useCredits';
 import { useGame } from '../../hooks/useGame';
+import { DepositModal } from './DepositModal';
 
 const Tetris = dynamic(() => import('react-tetris'), {
   ssr: false,
@@ -35,8 +36,9 @@ export function Game() {
   const [timeUntilPayout, setTimeUntilPayout] = useState('');
   const [showGameOver, setShowGameOver] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
-  const { credits, loading, depositCredits } = useCredits();
+  const { credits, loading: creditsLoading, transactionPending, depositCredits } = useCredits();
   const { generateScoreHash, setGameSeed } = useGame();
+  const [showDepositModal, setShowDepositModal] = useState(false);
 
   // Handle hydration
   useEffect(() => {
@@ -100,10 +102,20 @@ export function Game() {
     setShowGameOver(true);
   }, [generateScoreHash]);
 
-  // Add deposit handler
-  const handleAddCredits = useCallback(async () => {
-    await depositCredits(1); // Add 1 credit (0.1 SOL)
+  // Update deposit handler
+  const handleAddCredits = useCallback(async (amount: number) => {
+    try {
+      await depositCredits(amount);
+      setShowDepositModal(false);  // Close modal on success
+    } catch (error) {
+      console.error("Error depositing credits:", error);
+    }
   }, [depositCredits]);
+
+  const handleAddCreditsClick = () => {
+    console.log('Add Credits clicked');
+    setShowDepositModal(true);
+  };
 
   if (!mounted) {
     return (
@@ -114,8 +126,7 @@ export function Game() {
   }
 
   return (
-    <div className="game-section">
-
+    <div className="game-section relative">
       {/* Main game container */}
       <div className="game-container">
         {/* Left info panel */}
@@ -208,10 +219,10 @@ export function Game() {
           </div>
           <button 
             className="add-credits-button"
-            onClick={handleAddCredits}
-            disabled={loading}
+            onClick={() => setShowDepositModal(true)}
+            disabled={creditsLoading || transactionPending}
           >
-            {loading ? 'Processing...' : 'Add Credits'}
+            {creditsLoading || transactionPending ? 'Processing...' : 'Add Credits'}
           </button>
         </div>
       </div>
@@ -227,6 +238,15 @@ export function Game() {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showDepositModal && (
+        <DepositModal
+          onDeposit={handleAddCredits}
+          onClose={() => setShowDepositModal(false)}
+          isLoading={creditsLoading || transactionPending}
+        />
+      )}
 
       {showGameOver && (
         <GameOverModal

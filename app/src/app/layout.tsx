@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { ClientLayout } from "./ClientLayout";
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { ClientLayout } from './ClientLayout';
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Solana Arcade",
-  description: "Play arcade games on Solana",
-};
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({
   children,
@@ -17,9 +11,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <ClientLayout inter={inter}>
-        {children}
-      </ClientLayout>
+      <body className={`${inter.className} bg-[#1A1A1A]`}>
+        <ClientLayout>{children}</ClientLayout>
+      </body>
     </html>
   );
 }
