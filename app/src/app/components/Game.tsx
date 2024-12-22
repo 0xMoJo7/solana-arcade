@@ -5,6 +5,8 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useState, useEffect, useCallback } from 'react';
 import { GameOverModal } from './GameOverModal';
 import { WalletConnect } from './WalletConnect';
+import { useCredits } from '../../hooks/useCredits';
+import { useGame } from '../../hooks/useGame';
 
 const Tetris = dynamic(() => import('react-tetris'), {
   ssr: false,
@@ -22,6 +24,7 @@ interface GameTickState {
       y: number;
     };
   };
+  lastMove?: string;
 }
 
 export function Game() {
@@ -32,6 +35,8 @@ export function Game() {
   const [timeUntilPayout, setTimeUntilPayout] = useState('');
   const [showGameOver, setShowGameOver] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const { credits, loading, depositCredits } = useCredits();
+  const { generateScoreHash, setGameSeed } = useGame();
 
   // Handle hydration
   useEffect(() => {
@@ -90,9 +95,15 @@ export function Game() {
 
   // Update the game over handler
   const handleGameOver = useCallback(({ points }: { points: number }) => {
+    const scoreHash = generateScoreHash(points);
     setFinalScore(points);
     setShowGameOver(true);
-  }, []);
+  }, [generateScoreHash]);
+
+  // Add deposit handler
+  const handleAddCredits = useCallback(async () => {
+    await depositCredits(1); // Add 1 credit (0.1 SOL)
+  }, [depositCredits]);
 
   if (!mounted) {
     return (
@@ -192,11 +203,15 @@ export function Game() {
         <h2 className="credits-title">Game Credits</h2>
         <div className="credits-content">
           <div className="credits-info">
-            <p>Current Balance: 0 credits</p>
-            <p className="credits-rate">1 credit = 0.01 SOL</p>
+            <p>Current Balance: {credits} credits</p>
+            <p className="credits-rate">1 credit = 0.1 SOL</p>
           </div>
-          <button className="add-credits-button">
-            Add Credits
+          <button 
+            className="add-credits-button"
+            onClick={handleAddCredits}
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Add Credits'}
           </button>
         </div>
       </div>

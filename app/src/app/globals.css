@@ -734,3 +734,28 @@ body {
   gap: 1rem;
   z-index: 50;
 }
+
+/* Add to existing styles */
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.game-overlay-content {
+  text-align: center;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.game-overlay-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #6F4FF0;
+}

@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::hash::hash;
+use anchor_lang::solana_program::hash::hashv;
 
-declare_id!("8JkcsodWyPBmL4ZKFD22NptkEFdEBoH8o5tJMXzQZ8yp");
+declare_id!("A7kodx7FgCheVy4gXtnWMn2SLeEBSxtTjN86yKzFeHbx");
 
 #[program]
 pub mod solana_arcade {
@@ -69,19 +69,21 @@ pub mod solana_arcade {
         game_state.current_pot = game_state.current_pot.checked_add(GAME_COST)
             .ok_or(ErrorCode::NumberOverflow)?;
 
-        // Generate game seed for verification
-        let game_seed = hash(&[
+        // Generate unique session hash using player, timestamp, and a secret
+        let session_hash = hashv(&[
             ctx.accounts.player.key().as_ref(),
             &Clock::get()?.unix_timestamp.to_le_bytes(),
             &game_state.total_games_played.to_le_bytes(),
-        ].concat()).to_bytes();
+            ctx.program_id.as_ref(),
+            b"SOLANA_ARCADE_SECRET",
+        ]).to_bytes();
 
         game_state.total_games_played = game_state.total_games_played.checked_add(1)
             .ok_or(ErrorCode::NumberOverflow)?;
 
         emit!(GameStarted {
             player: ctx.accounts.player.key(),
-            game_seed,
+            session_hash,
             timestamp: Clock::get()?.unix_timestamp,
         });
 
@@ -89,14 +91,19 @@ pub mod solana_arcade {
     }
 
     // Submit game score
-    pub fn submit_score(ctx: Context<SubmitScore>, score: u64, moves_hash: [u8; 32]) -> Result<()> {
+    pub fn submit_score(ctx: Context<SubmitScore>, score: u64, session_hash: [u8; 32]) -> Result<()> {
         let game_state = &mut ctx.accounts.game_state;
         let player_stats = &mut ctx.accounts.player_stats;
         let current_time = Clock::get()?.unix_timestamp;
 
-        // Verify game moves hash
+        // Verify the score submission is valid
         require!(
-            verify_moves_hash(moves_hash, score),
+            verify_score_hash(
+                session_hash,
+                score,
+                ctx.accounts.player.key(),
+                ctx.program_id
+            ),
             ErrorCode::InvalidGameData
         );
 
@@ -337,7 +344,7 @@ impl Leaderboard {
 #[event]
 pub struct GameStarted {
     pub player: Pubkey,
-    pub game_seed: [u8; 32],
+    pub session_hash: [u8; 32],
     pub timestamp: i64,
 }
 
@@ -371,10 +378,15 @@ pub enum ErrorCode {
     Unauthorized,
 }
 
-// Helper function to verify game moves
-fn verify_moves_hash(_moves_hash: [u8; 32], _score: u64) -> bool {
-    // Implement verification logic
-    true
+fn verify_score_hash(session_hash: [u8; 32], score: u64, _player: Pubkey, _program_id: &Pubkey) -> bool {
+    let data = [
+        score.to_le_bytes().as_ref(),
+        session_hash.as_ref(),
+        b"SOLANA_ARCADE_SECRET",
+    ].concat();
+
+    let expected_hash = hashv(&[&data]).to_bytes();
+    session_hash == expected_hash
 }
 
 #[account]
@@ -384,7 +396,7 @@ pub struct GameVault {
 }
 
 impl GameVault {
-    pub const SPACE: usize = 8 + // discriminator
+    pub const SPACE: usize = 8 + 
         32 + // authority
         8;  // amount
 }

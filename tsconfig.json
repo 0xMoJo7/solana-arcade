@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "strict": true,
+    "resolveJsonModule": true
+  },
+  "include": ["scripts/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "app"]
+} 
